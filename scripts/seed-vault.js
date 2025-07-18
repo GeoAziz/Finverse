@@ -1,4 +1,3 @@
-
 const admin = require("firebase-admin");
 const { faker } = require("@faker-js/faker");
 const serviceAccount = require("../serviceAccountKey.json");
@@ -41,7 +40,8 @@ const clearCollection = async (collectionPath) => {
 }
 
 const seedVaultForUser = async (user) => {
-    const col = db.collection("vault");
+    // FIX: Store vault docs in user subcollection for UI compatibility
+    const col = db.collection("users").doc(user.uid).collection("vault");
     const batch = db.batch();
 
     for (let i = 0; i < 5; i++) {

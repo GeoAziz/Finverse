@@ -1,4 +1,3 @@
-
 const admin = require("firebase-admin");
 const { faker } = require("@faker-js/faker");
 const serviceAccount = require("../serviceAccountKey.json");
@@ -41,7 +40,8 @@ const clearCollection = async (collectionPath) => {
 }
 
 const seedCryptoCoreForUser = async (uid) => {
-    const walletRef = db.collection("cryptocore").doc(); // Creates one main wallet doc per user
+    // FIX: Store wallet in user subcollection for UI compatibility
+    const walletRef = db.collection("users").doc(uid).collection("cryptocore").doc();
 
     const batch = db.batch();
 
