@@ -55,3 +55,10 @@ export const vaultCollection = (uid: string) => collection(db, `users/${uid}/vau
 
 // IDBank (Simple collection for user identity data)
 export const idbankCollection = (uid: string) => collection(db, `users/${uid}/idbank`);
+
+// TaxGrid
+export const taxGridSummaryDoc = (uid: string) => doc(db, `users/${uid}/taxgrid/summary`);
+export const taxGridAiInsightsDoc = (uid: string) => doc(db, `users/${uid}/taxgrid/aiInsights`);
+export const taxGridIncomeSourcesCollection = (uid: string) => collection(db, `users/${uid}/taxgrid/data/incomeSources`);
+export const taxGridDeductionsCollection = (uid: string) => collection(db, `users/${uid}/taxgrid/data/deductions`);
+export const taxGridFilingsCollection = (uid: string) => collection(db, `users/${uid}/taxgrid/data/filings`);
