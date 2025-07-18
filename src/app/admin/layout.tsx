@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import {
   Users,
@@ -28,6 +29,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 
 
 const UserNav = () => {
