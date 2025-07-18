@@ -84,7 +84,7 @@ export function PayBillModal({ uid, currentBalance, currency }: PayBillModalProp
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline"><Receipt/> Pay Bill</Button>
+        <Button size="lg" variant="outline"><Receipt className="mr-2"/> Pay Bill</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-card/80 backdrop-blur-lg border-primary/20">
         <DialogHeader>

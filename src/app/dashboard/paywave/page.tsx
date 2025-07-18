@@ -2,7 +2,6 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Wallet, Loader, Receipt, Sparkles, AlertTriangle, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
@@ -13,7 +12,6 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { SendMoneyModal } from '@/components/modals/send-money-modal';
 import { PayBillModal } from '@/components/modals/pay-bill-modal';
-import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const pageVariants = {
@@ -30,14 +28,14 @@ interface WalletData {
 
 interface Transaction {
     id: string;
-    type: 'send' | 'receive';
+    type: 'send' | 'receive' | 'pay-bill';
     amount: number;
-    to: string;
-    from: string;
-    method: string;
+    to?: string;
+    from?: string;
+    method?: string;
     status: string;
     timestamp: Timestamp;
-    note: string;
+    description: string;
 }
 
 interface AlertData {
@@ -133,8 +131,8 @@ export default function PayWavePage() {
                     <div className="flex flex-col justify-center items-center bg-background/50 p-6 rounded-lg space-y-4">
                        <p className="text-sm text-muted-foreground">Quick Actions</p>
                        <div className="flex w-full justify-center gap-4">
-                         {user && <Button size="lg" disabled={wallet.isFrozen}><Send className="mr-2" /> Send</Button>}
-                         {user && <Button size="lg" variant="outline" disabled={wallet.isFrozen}><Receipt className="mr-2"/> Pay Bill</Button>}
+                         {user && <SendMoneyModal uid={user.uid} currentBalance={wallet.balance} currency={wallet.currency} />}
+                         {user && <PayBillModal uid={user.uid} currentBalance={wallet.balance} currency={wallet.currency} />}
                        </div>
                     </div>
                 </CardContent>
@@ -157,13 +155,12 @@ export default function PayWavePage() {
                                 </TableHeader>
                                 <TableBody>
                                     {transactions.map((tx) => {
-                                        const isDebit = tx.from === user?.uid;
-                                        const party = isDebit ? tx.to : tx.from;
+                                        const isDebit = tx.type !== 'receive';
                                         return (
                                             <TableRow key={tx.id}>
-                                                <TableCell><Badge variant={isDebit ? "destructive" : "default"} className="capitalize">{tx.type}</Badge></TableCell>
+                                                <TableCell><Badge variant={isDebit ? "destructive" : "default"} className="capitalize">{tx.type.replace('-', ' ')}</Badge></TableCell>
                                                 <TableCell>
-                                                    <p className="font-medium">{isDebit ? 'To' : 'From'}: {party.substring(0,8)}...</p>
+                                                    <p className="font-medium">{tx.description}</p>
                                                     <p className="text-xs text-muted-foreground">{format(tx.timestamp.toDate(), 'PPpp')}</p>
                                                 </TableCell>
                                                 <TableCell className={`text-right font-semibold font-code ${isDebit ? 'text-red-400' : 'text-green-400'}`}>

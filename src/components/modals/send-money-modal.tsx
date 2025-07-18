@@ -53,7 +53,7 @@ export function SendMoneyModal({ uid, currentBalance, currency }: SendMoneyModal
             uid,
             type: 'send',
             amount,
-            description: note ? `Send to ${recipient} - ${note}` : `Sent to ${recipient}`,
+            description: note ? `Sent to ${recipient} - ${note}` : `Sent to ${recipient}`,
             status: 'Complete'
         });
 
@@ -78,7 +78,7 @@ export function SendMoneyModal({ uid, currentBalance, currency }: SendMoneyModal
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button><Send /> Send Money</Button>
+        <Button size="lg"><Send className="mr-2"/> Send Money</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-card/80 backdrop-blur-lg border-primary/20">
         <DialogHeader>
