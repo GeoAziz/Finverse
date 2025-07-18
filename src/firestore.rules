@@ -1,0 +1,68 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if a user has a specific role
+    function hasRole(role) {
+      return get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role == role;
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Config: Admins can write, all authenticated users can read
+    match /config/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('admin');
+    }
+
+    // Roles: Admins can write, users can read their own role
+    match /roles/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if hasRole('admin');
+    }
+    
+    // Users: Can only read/write their own document
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // NeuroBank: Users can only manage their own transactions
+    match /neurobank/{transactionId} {
+      allow read, write: if request.auth.uid == resource.data.uid;
+    }
+
+    // CryptoCore: Users can only manage their own wallet documents
+    match /cryptocore/{walletId} {
+       allow read, write: if request.auth.uid == resource.data.uid;
+       
+       // Rules for subcollections
+       match /{subcollection}/{docId} {
+         allow read, write: if get(/databases/$(database)/documents/cryptocore/$(walletId)).data.uid == request.auth.uid;
+       }
+    }
+    
+    // Vault: Users can only manage their own documents
+    match /vault/{docId} {
+       allow read, write: if request.auth.uid == resource.data.uid;
+    }
+
+    // EconoSim: Users manage their own simulations, scenarios are read-only for users
+    match /econosim_scenarios/{scenarioId} {
+        allow read: if request.auth != null;
+        allow write: if hasRole('admin');
+    }
+    match /econosim_simulations/{simId} {
+        allow read, write: if request.auth.uid == resource.data.uid;
+    }
+    
+    // Nested user-specific collections
+    match /users/{userId}/{collectionId}/{document=**} {
+      allow read, write: if request.auth.uid == userId;
+    }
+  }
+}
