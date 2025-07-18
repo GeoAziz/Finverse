@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Fingerprint, CheckCircle, Upload, GraduationCap, Star, Bot } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -16,6 +17,14 @@ const pageVariants = {
 
 export default function IDBankPage() {
     const { user, profile } = useAuth();
+    const { toast } = useToast();
+
+    const showToast = (feature: string) => {
+        toast({
+            title: "Demonstration Only",
+            description: `${feature} functionality is for display in this prototype.`,
+        });
+    };
     
     return (
         <motion.div
@@ -103,19 +112,19 @@ export default function IDBankPage() {
                         <Upload className="mx-auto w-10 h-10 mb-2 text-accent"/>
                         <h3 className="font-bold">Personal Progress</h3>
                         <p className="text-sm text-muted-foreground">Track your financial literacy and score improvements.</p>
-                         <Button className="mt-2" disabled>View Progress</Button>
+                         <Button className="mt-2" onClick={() => showToast('View Progress')}>View Progress</Button>
                     </div>
                     <div className="p-6 bg-background/50 rounded-lg">
                         <GraduationCap className="mx-auto w-10 h-10 mb-2 text-accent"/>
                         <h3 className="font-bold">Learn-to-Earn Modules</h3>
                         <p className="text-sm text-muted-foreground">Complete lessons to earn rewards and boost your score.</p>
-                        <Button className="mt-2" disabled>Start Learning</Button>
+                        <Button className="mt-2" onClick={() => showToast('Learn-to-Earn')}>Start Learning</Button>
                     </div>
                      <div className="p-6 bg-background/50 rounded-lg">
                         <Star className="mx-auto w-10 h-10 mb-2 text-accent"/>
                         <h3 className="font-bold">Score Upgrades</h3>
                         <p className="text-sm text-muted-foreground">Increase your KYC level and unlock better financial products.</p>
-                        <Button className="mt-2" disabled>Upgrade Tier</Button>
+                        <Button className="mt-2" onClick={() => showToast('Tier Upgrades')}>Upgrade Tier</Button>
                     </div>
                 </CardContent>
             </Card>

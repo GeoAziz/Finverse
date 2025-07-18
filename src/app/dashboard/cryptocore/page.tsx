@@ -9,10 +9,9 @@ import { cryptocoreCollection, cryptocoreTokensCollection, cryptocoreNftsCollect
 import { onSnapshot, DocumentData } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader, QrCode, Bot } from 'lucide-react';
+import { Loader, QrCode, Bot, Send } from 'lucide-react';
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { CryptoActionModal } from '@/components/modals/crypto-action-modal';
 import { toast } from '@/hooks/use-toast';
 
 const pageVariants = {
@@ -121,10 +120,10 @@ export default function CryptoCorePage() {
         
     }, [user]);
     
-    const showToast = () => {
+    const showToast = (action: string) => {
         toast({
-            title: "Feature Coming Soon",
-            description: "This functionality is currently under development.",
+            title: "Demonstration Only",
+            description: `${action} functionality is for display in this prototype.`,
         });
     };
 
@@ -206,8 +205,8 @@ export default function CryptoCorePage() {
                                     <p className={`text-lg ${insights?.growth7d?.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{insights?.growth7d ?? '0.00%'} (last 7d)</p>
                                 </div>
                                 <div className="flex flex-col gap-2 mt-6">
-                                    <CryptoActionModal action="Send" wallets={tokens.map(t => ({id: t.id, coin: t.name, balance: t.balance}))} />
-                                    <Button variant="outline" onClick={showToast}><QrCode /> Receive</Button>
+                                    <Button onClick={() => showToast('Send/Withdraw')}><Send /> Send / Withdraw</Button>
+                                    <Button variant="outline" onClick={() => showToast('Receive')}><QrCode /> Receive</Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -251,7 +250,7 @@ export default function CryptoCorePage() {
                             <div className="p-6 bg-background/50 rounded-lg">
                                 <h3 className="font-bold">Live Trading Panel</h3>
                                 <p className="text-sm text-muted-foreground">Execute trades across multiple chains instantly.</p>
-                                 <Button className="mt-2" onClick={showToast}>Launch Trader</Button>
+                                 <Button className="mt-2" onClick={() => showToast('Live Trading')}>Launch Trader</Button>
                             </div>
                             <div className="p-6 bg-background/50 rounded-lg">
                                 <h3 className="font-bold">AI Insights</h3>

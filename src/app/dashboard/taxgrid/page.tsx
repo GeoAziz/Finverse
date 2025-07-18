@@ -18,6 +18,7 @@ import {
 import { onSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { toast } from '@/hooks/use-toast';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -103,6 +104,13 @@ export default function TaxGridPage() {
 
         return () => unsubs.forEach(unsub => unsub());
     }, [user]);
+
+    const showToast = () => {
+        toast({
+            title: "Demonstration Only",
+            description: "Simulation functionality is for display in this prototype.",
+        });
+    };
 
     if (loading) {
         return <div className="flex h-64 items-center justify-center"><Loader className="w-12 h-12 animate-spin text-primary" /></div>;
@@ -206,11 +214,9 @@ export default function TaxGridPage() {
                         <h4 className="font-bold text-lg">Savings Tip</h4>
                         <p className="text-sm text-muted-foreground italic">"{insights?.savingsTips}"</p>
                     </div>
-                    <Button variant="outline" disabled>Simulate 'What If?' Scenario</Button>
+                    <Button variant="outline" onClick={showToast}>Simulate 'What If?' Scenario</Button>
                 </CardContent>
             </Card>
         </motion.div>
     );
 }
-
-    
