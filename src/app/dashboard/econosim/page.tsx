@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { Simulation, Scenario } from '@/lib/types/econosim';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -43,7 +43,7 @@ export default function EconoSimPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const [simulation, setSimulation] = useState<Simulation | null>(null);
-    const [scenario, setScenario] = useState<Scenario | null>(null);
+    const [scenario, setScenario] = useState<(Scenario & { id?: string }) | null>(null);
     const [loading, setLoading] = useState(true);
     const [startingGame, setStartingGame] = useState(false);
     const [simRunning, setSimRunning] = useState(false);
@@ -71,12 +71,13 @@ export default function EconoSimPage() {
                     const scenarioSnap = await getDoc(scenarioRef);
                     if (scenarioSnap.exists()) {
                         const loadedScenario = scenarioSnap.data() as Scenario;
-                        setScenario(loadedScenario);
+                        // Merge the scenarioId as id into the scenario object
+                        setScenario({ ...loadedScenario, id: simData.scenarioId });
                         if (simData.status === 'active' && simData.inputs) {
                             setInterestRate(simData.inputs.interestRate || loadedScenario.initialValues.interestRate || 5);
                             setTaxRate(simData.inputs.taxRate || loadedScenario.initialValues.taxRate || 20);
                         } else if (simData.status === 'not-started') {
-                             setInterestRate(loadedScenario.initialValues.interestRate || 5);
+                            setInterestRate(loadedScenario.initialValues.interestRate || 5);
                             setTaxRate(loadedScenario.initialValues.taxRate || 20);
                         }
                     }
@@ -112,7 +113,7 @@ export default function EconoSimPage() {
     };
     
     const handleRunSimulation = async () => {
-        if (!user || !simulation || !scenario) return;
+        if (!user || !simulation || !scenario || !scenario.id) return;
         setSimRunning(true);
         setAdvice(null);
         try {

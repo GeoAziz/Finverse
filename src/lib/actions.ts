@@ -1,8 +1,16 @@
 
+// Extend the Window interface to include 'firebase'
+declare global {
+    interface Window {
+        firebase?: any;
+    }
+}
+
 'use server';
 
-import { addDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, writeBatch, collection } from "firebase/firestore";
+import { addDoc, doc, runTransaction, serverTimestamp, writeBatch, collection, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db, storage } from "./firebase";
+import { adminDb } from "./firebase-admin";
 import { 
     simulationDoc,
     investhubPortfolioDoc, 
@@ -206,30 +214,76 @@ export async function updateInvestment(payload: {
 
 // ECONOSIM ACTIONS
 export async function startMacroSimulation({ simulationId }: { simulationId: string }) {
-    const simRef = simulationDoc(simulationId);
-    const simSnap = await getDoc(simRef);
+    // Use Admin SDK for all Firestore access in server actions
+    const simRef = adminDb.collection("econosim_simulations").doc(simulationId);
+    let simSnap;
+    try {
+        simSnap = await simRef.get();
+    } catch (err) {
+        console.error("[EconoSim Debug] [Admin SDK] Error fetching simulation doc:", err);
+        throw err;
+    }
 
-    if (!simSnap.exists()) throw new Error("Simulation not found.");
+    if (!simSnap.exists) {
+        console.error("[EconoSim Debug] [Admin SDK] Simulation not found for ID:", simulationId);
+        throw new Error("Simulation not found.");
+    }
 
-    const scenarioId = simSnap.data().scenarioId;
-    if (!scenarioId) throw new Error("Scenario ID is missing from the simulation document.");
+    // Debug: Log simulationId and document data
+    console.log("[EconoSim Debug] [Admin SDK] startMacroSimulation called");
+    console.log("Simulation ID:", simulationId);
+    const simData = simSnap.data();
+    console.log("Simulation doc data:", simData);
+    if (!simData) {
+        console.error("[EconoSim Debug] Simulation data is undefined for ID:", simulationId);
+        throw new Error("Simulation data is undefined.");
+    }
+    console.log("[EconoSim Debug] Simulation doc UID:", simData.uid);
 
-    const scenarioRef = scenarioDoc(scenarioId);
-    const scenarioSnap = await getDoc(scenarioRef);
-    
-    if (!scenarioSnap.exists()) throw new Error("Scenario not found.");
-    
-    const initialValues = scenarioSnap.data().initialValues;
+    const scenarioId = simData.scenarioId;
+    if (!scenarioId) {
+        console.error("[EconoSim Debug] Scenario ID missing in simulation doc:", simData);
+        throw new Error("Scenario ID is missing from the simulation document.");
+    }
 
-    await updateDoc(simRef, {
+    let scenarioSnap;
+    try {
+        scenarioSnap = await adminDb.collection("econosim_scenarios").doc(scenarioId).get();
+    } catch (err) {
+        console.error("[EconoSim Debug] [Admin SDK] Error fetching scenario doc:", err);
+        throw err;
+    }
+    if (!scenarioSnap.exists) {
+        console.error("[EconoSim Debug] [Admin SDK] Scenario not found for ID:", scenarioId);
+        throw new Error("Scenario not found.");
+    }
+
+    const scenarioData = scenarioSnap.data();
+    if (!scenarioData) {
+        console.error("[EconoSim Debug] Scenario data is undefined for scenario ID:", scenarioId);
+        throw new Error("Scenario data is undefined.");
+    }
+    const initialValues = scenarioData.initialValues;
+
+    // Debug: Log update payload
+    const updatePayload = {
         outputs: initialValues,
         inputs: {
             interestRate: initialValues.interestRate || 5,
             taxRate: initialValues.taxRate || 20,
         },
         status: 'active',
-        startedAt: serverTimestamp(),
-    });
+        startedAt: new Date(), // Use JS Date for admin SDK
+    };
+    console.log("[EconoSim Debug] [Admin SDK] Update payload:", updatePayload);
+
+    try {
+        await simRef.update(updatePayload);
+        console.log("[EconoSim Debug] [Admin SDK] updateDoc success");
+    } catch (err) {
+        console.error("[EconoSim Debug] [Admin SDK] updateDoc error:", err);
+        throw err;
+    }
 }
 
 export async function runMacroSimulation(input: Omit<RunSimulationInput, 'uid'>) {

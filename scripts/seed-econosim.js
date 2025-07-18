@@ -1,4 +1,3 @@
-
 const admin = require("firebase-admin");
 const serviceAccount = require("../serviceAccountKey.json");
 
@@ -72,17 +71,13 @@ const seedEconoSim = async (users) => {
     const usersToSeed = users.filter(u => u.role === 'user');
 
     for (const user of usersToSeed) {
-        const docRef = simulationsCol.doc(); 
+        const docRef = simulationsCol.doc(user.uid); // Use UID as doc ID
         batch.set(docRef, {
-            id: docRef.id,
+            id: user.uid,
             uid: user.uid,
             scenarioId,
             status: 'not-started',
-            outputs: {
-                gdp: 0,
-                inflation: 0,
-                jobs: 0,
-            },
+            outputs: { gdp: 0, inflation: 0, jobs: 0 },
             createdAt: admin.firestore.Timestamp.now(),
         });
     }
