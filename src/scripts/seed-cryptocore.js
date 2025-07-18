@@ -23,20 +23,37 @@ const USER_CREDENTIALS = [
 ];
 // --- END CONFIGURATION ---
 
-const clearCollectionForUser = async (uid, collectionName) => {
-    const collectionRef = db.collection('users').doc(uid).collection(collectionName);
-    const snapshot = await collectionRef.get();
-
-    if (snapshot.size === 0) return;
-
-    const batch = db.batch();
-    snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-    });
-
-    await batch.commit();
-    console.log(`🗑️  Cleared ${collectionName} for user ${uid}`);
+const deleteCollection = async (collectionRef, batchSize = 50) => {
+    const query = collectionRef.limit(batchSize);
+    let snapshot = await query.get();
+    
+    while (snapshot.size > 0) {
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        snapshot = await query.get();
+    }
 }
+
+
+const clearCryptoCoreForUser = async (uid) => {
+    const cryptoCoreRef = db.collection('users').doc(uid).collection('cryptocore');
+    const walletSnapshot = await cryptoCoreRef.get();
+
+    // Delete all documents in the cryptocore collection (wallets)
+    // and recursively delete their subcollections
+    for (const doc of walletSnapshot.docs) {
+        await deleteCollection(doc.ref.collection('tokens'));
+        await deleteCollection(doc.ref.collection('nfts'));
+        await deleteCollection(doc.ref.collection('history'));
+        await deleteCollection(doc.ref.collection('insights'));
+        await doc.ref.delete();
+    }
+    
+    console.log(`🧹 Cleared existing CryptoCore data for user ${uid}`);
+};
 
 const seedCryptoCoreForUser = async (uid) => {
     const walletRef = db.collection('users').doc(uid).collection('cryptocore').doc(); // Creates one main wallet doc per user
@@ -45,7 +62,6 @@ const seedCryptoCoreForUser = async (uid) => {
 
     // Set the main wallet document FIRST
     batch.set(walletRef, {
-        // No uid needed in document, path is enough
         walletName: `${faker.word.adjective()} Digital Wallet`,
         totalValue: 0, // Start at 0, will be updated
         lastUpdated: admin.firestore.Timestamp.now(),
@@ -133,7 +149,7 @@ const seedAll = async () => {
     }
 
     for (const user of usersToSeed) {
-        await clearCollectionForUser(user.uid, 'cryptocore');
+        await clearCryptoCoreForUser(user.uid);
         await seedCryptoCoreForUser(user.uid);
     }
     

@@ -45,7 +45,6 @@ const seedVaultForUser = async (user) => {
     for (let i = 0; i < 5; i++) {
         const docRef = col.doc();
         batch.set(docRef, {
-            // No need for uid inside the document anymore, path-based security is enough
             title: faker.system.commonFileName({ extension: faker.helpers.arrayElement(['pdf', 'docx', 'png']) }),
             category: faker.helpers.arrayElement(["Financial", "Legal", "Identity", "Personal"]),
             url: "https://placehold.co/100x100.png",
